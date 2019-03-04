@@ -1,6 +1,6 @@
 # cloud_speech
 
-A new flutter plugin project.
+Google Cloud Speech API for Flutter.
 
 ## Getting Started
 
