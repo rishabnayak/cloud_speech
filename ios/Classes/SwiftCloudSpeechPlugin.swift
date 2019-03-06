@@ -35,8 +35,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin {
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
             
-            // 8kHz buffers!
-            print(convertedBuffer.format)
+            print(convertedBuffer)
         }
         
         try! engine.start()
@@ -48,7 +47,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin {
         registrar.addMethodCallDelegate(instance, channel: channel)
       }
 
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     startRecording()
     result("iOS " + UIDevice.current.systemVersion)
   }
