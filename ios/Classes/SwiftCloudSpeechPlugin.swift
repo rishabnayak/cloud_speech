@@ -2,12 +2,27 @@ import Flutter
 import UIKit
 import AVFoundation
 
+
 @available(iOS 9.0, *)
-public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin {
+public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
+
+    let engine = AVAudioEngine()
+    private var eventSink: FlutterEventSink?
     
-    let engine  = AVAudioEngine()
+    public static func register(with registrar: FlutterPluginRegistrar) {
+        let channel = FlutterMethodChannel(name: "cloud_speech", binaryMessenger: registrar.messenger())
+        let eventChannel = FlutterEventChannel(name: "audio", binaryMessenger: registrar.messenger())
+        let instance = SwiftCloudSpeechPlugin()
+        registrar.addMethodCallDelegate(instance, channel: channel)
+        eventChannel.setStreamHandler(instance)
+      }
     
-    func startRecording() {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    result("iOS " + UIDevice.current.systemVersion)
+  }
+    
+    public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        
         let input = engine.inputNode
         let bus = 0
         let inputFormat = input.outputFormat(forBus: 0)
@@ -35,20 +50,18 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin {
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
             
-            print(convertedBuffer)
+            let values = UnsafeBufferPointer(start: convertedBuffer.floatChannelData![0], count: Int(convertedBuffer.frameLength))
+            let arr = Array(values)
+            events(arr)
+            
         }
         
         try! engine.start()
+        
+    }
+
+    public func onCancel(withArguments arguments: Any?) -> FlutterError? {
+
     }
     
-    public static func register(with registrar: FlutterPluginRegistrar) {
-        let channel = FlutterMethodChannel(name: "cloud_speech", binaryMessenger: registrar.messenger())
-        let instance = SwiftCloudSpeechPlugin()
-        registrar.addMethodCallDelegate(instance, channel: channel)
-      }
-
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    startRecording()
-    result("iOS " + UIDevice.current.systemVersion)
-  }
 }
