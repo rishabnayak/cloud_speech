@@ -26,6 +26,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       platformVersion = await CloudSpeech.platformVersion;
+      StreamSubscription out = await CloudSpeech.audioStream;
+      print(out);
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
