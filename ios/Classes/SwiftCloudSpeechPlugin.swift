@@ -63,5 +63,4 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
 
     }
-    
 }
