@@ -1,0 +1,22 @@
+PODS:
+  - cloud_speech (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+
+DEPENDENCIES:
+  - cloud_speech (from `.symlinks/plugins/cloud_speech/ios`)
+  - Flutter (from `.symlinks/flutter/ios`)
+
+EXTERNAL SOURCES:
+  cloud_speech:
+    :path: ".symlinks/plugins/cloud_speech/ios"
+  Flutter:
+    :path: ".symlinks/flutter/ios"
+
+SPEC CHECKSUMS:
+  cloud_speech: b7e00576d42c730a54ff10d04520bef408e52a3a
+  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+
+PODFILE CHECKSUM: ebd43b443038e611b86ede96e613bd6033c49497
+
+COCOAPODS: 1.6.0
