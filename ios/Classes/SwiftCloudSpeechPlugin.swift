@@ -26,7 +26,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         let input = engine.inputNode
         let bus = 0
         let inputFormat = input.outputFormat(forBus: 0)
-        let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 8000, channels: 1, interleaved: true)!
+        let outputFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 8000, channels: 1, interleaved: true)!
         
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat)!
         
@@ -50,7 +50,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
             
-            let values = UnsafeBufferPointer(start: convertedBuffer.floatChannelData![0], count: Int(convertedBuffer.frameLength))
+            let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
             let arr = Array(values)
             events(arr)
             
@@ -58,9 +58,13 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         
         try! engine.start()
         
+        return nil
+        
     }
 
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-
+        
+        return nil
+        
     }
 }
