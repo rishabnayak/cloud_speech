@@ -49,7 +49,6 @@ class AudioController extends CloudSpeech {
   //add a completer
 
   //Releases Microphone
-  @override
   Future<void> dispose() async {
     if (_isDisposed) {
       return;
@@ -73,20 +72,12 @@ class AudioValue {
     this.channelCount = 1;
     this.sampleRate = 8000;
     this.isInterleaved = true;
-<<<<<<< HEAD
     this.commonFormat = 'int16';}
 
   const AudioValue.custom(this.channelCount,
     this.channelLayout,
     this.sampleRate,
     this.isInterleaved,
-=======
-    this.commonFormat = '.pcmFormat16';
-  }
-  //Custom Constructor
-  AudioSettings.other(this.channelCount, this.channelLayout,
-    this.sampleRate, this.isInterleaved, this.isStandard,
->>>>>>> 08b30bc687349ed7472cf50969a24dc7647c64a4
     this.commonFormat);
 
   const AudioValue.uninitialized()
@@ -123,8 +114,7 @@ class AudioValue {
   @override
   String toString() {
     return '$runtimeType('
-        'isInitialized: $isInitialized, '
-        'previewSize: $previewSize, '
+        'isInitialized: $isInitialized,'
         'isStreaming: $isStreaming)';
   }
 }
