@@ -38,7 +38,7 @@ class AudioSettings extends CloudSpeech {
     this.isInterleaved = true;
     this.commonFormat = '.pcmFormat16';
   }
-  //Specialized Constructor
+  //Custom Constructor
   AudioSettings.other(this.channelCount, this.channelLayout,
     this.sampleRate, this.isInterleaved, this.isStandard,
     this.commonFormat);
