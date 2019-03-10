@@ -73,12 +73,20 @@ class AudioValue {
     this.channelCount = 1;
     this.sampleRate = 8000;
     this.isInterleaved = true;
+<<<<<<< HEAD
     this.commonFormat = 'int16';}
 
   const AudioValue.custom(this.channelCount,
     this.channelLayout,
     this.sampleRate,
     this.isInterleaved,
+=======
+    this.commonFormat = '.pcmFormat16';
+  }
+  //Custom Constructor
+  AudioSettings.other(this.channelCount, this.channelLayout,
+    this.sampleRate, this.isInterleaved, this.isStandard,
+>>>>>>> 08b30bc687349ed7472cf50969a24dc7647c64a4
     this.commonFormat);
 
   const AudioValue.uninitialized()
