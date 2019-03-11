@@ -141,13 +141,13 @@ class AudioController extends ValueNotifier<AudioValue> {
     if (!value.isInitialized || _isDisposed) {
       throw AudioControllerException(
         'Uninitialized AudioController',
-        'startAudioStream was called on uninitialized AudioController.',
+        'stopAudioStream was called on uninitialized AudioController.',
       );
     }
-    if (value.isStreamingAudio) {
+    if (!value.isStreamingAudio) {
       throw AudioControllerException(
-        'A mic has started streaming audio.',
-        'startAudioStream was called while a mic was streaming audio.',
+        "A mic isn't streaming audio.",
+        'stopAudioStream was called while a mic was not streaming audio.',
       );
     }
 

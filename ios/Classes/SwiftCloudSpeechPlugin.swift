@@ -38,6 +38,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
                 return nil!
             }
         }
+        result("iOS " + UIDevice.current.systemVersion)
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -46,7 +47,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         let bus = 0
         let inputFormat = input.outputFormat(forBus: 0)
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat!)!
-        
+
         input.installTap(onBus: bus, bufferSize: 512, format: inputFormat) { (buffer, time) -> Void in
             var newBufferAvailable = true
 
@@ -66,12 +67,17 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
             var error: NSError?
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
-
-            let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
-            let arr = Array(values)
-            events(arr)
-            print("hello")
-            print(arr)
+            
+            if (self.outputFormat?.commonFormat == AVAudioCommonFormat.pcmFormatInt16) {
+                let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
+                let arr = Array(values)
+                events(arr)
+            }
+            else{
+                let values = UnsafeBufferPointer(start: convertedBuffer.int32ChannelData![0], count: Int(convertedBuffer.frameLength))
+                let arr = Array(values)
+                events(arr)
+            }
         }
 
         try! engine.start()
@@ -81,9 +87,9 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     }
 
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        
+
         engine.stop()
-        
+
         return nil
 
     }
