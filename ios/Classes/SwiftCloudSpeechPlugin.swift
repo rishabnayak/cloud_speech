@@ -8,6 +8,12 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
 
     let engine = AVAudioEngine()
     private var eventSink: FlutterEventSink?
+    struct AudioVals{
+        static var commonFormat = "AVAudioCommonFormat.pcmFormatInt16"
+        static var SampleRate = 8000
+        static var interleaved = true
+        static var channelCount = 2
+    }
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "cloud_speech", binaryMessenger: registrar.messenger())
@@ -17,19 +23,22 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         eventChannel.setStreamHandler(instance)
       }
 
-      public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
           switch call.method {
           case "initialize":
-            let args = call.arguments as! [String: Any]
-            let someInfo : String = args["commonFormat"]! as! String
-            print(someInfo)
-            
+            let AudioVals.commonFormat : String = args["commonFormat"]! as! String
+            let AudioVals.sampleRate: Double = args["interleaved"] as! Double
+            let AudioVals.interleaved: Bool = args["sampleRate"] as! Bool
+            let AudioVals.channelCount : Int = args["channelCount"]! as! Int
+
+            return args
+
           case "startAudioStream":
             return nil!
 
           case "stopImageStream":
             return nil!
-            
+
           default:
             return nil!
 
@@ -37,11 +46,21 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+        // Switch for parsing commonFormat - Can abstract later
+        switch AudioVals.commonFormat{
+            case "AVAudioCommonFormat.pcmFormatInt16"
+                var AudioVals.commonFormat = .pcmformatInt16
+            case "AVAudioCommonFormat.pcmFormatInt32"
+                var AudioVals.commonFormat = .pcmFormatInt32
+        }
 
         let input = engine.inputNode
         let bus = 0
         let inputFormat = input.outputFormat(forBus: 0)
-        let outputFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 8000, channels: 1, interleaved: true)!
+        let outputFormat = AVAudioFormat(commonFormat: AudioVals.commonFormat,
+                                         sampleRate: sampleAudioVals.sampleRate,
+                                         channels: AudioVals.channelCount,
+                                         interleaved: AudioVals.interleaved)!
 
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat)!
 
