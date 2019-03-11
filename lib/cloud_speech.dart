@@ -1,134 +1,42 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
-class CloudSpeech {
-  //Method Channel Setup
-  static const MethodChannel _channel =
-      const MethodChannel('cloud_speech');
-  //Stream Setup
-  static Future<StreamSubscription> get audioStream async {
-    try{
-        StreamSubscription<dynamic> _audioStream;
-        const EventChannel eventChannel =
-              EventChannel('audio');
-        _audioStream = eventChannel.receiveBroadcastStream()
-                                   .listen((dynamic audioData) {
-                                            print(audioData);});
-        return _audioStream;
-      } on PlatformException catch(e) {
-        throw(AudioControllerException(e.code, e.message));
-      }
-  }
+final MethodChannel _channel = const MethodChannel('cloud_speech');
 
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-}
-
-//AVAudioFormat Inputs
-class AudioController extends CloudSpeech {
-  //Getting Audio Format Vals
-  int channelCount;
-  int channelLayout;
-  double sampleRate;
-
-  //Determining the Audio Format
-  bool isStandard;
-  bool isInterleaved;
-  String commonFormat;
-
-  //Control Features
-  bool isStreaming;
-  bool _isDisposed = false;
-
-
-  Future<void> intialize() async{}
-  //add a stopper for event channel
-  Future<void> startAudioStream;
-  //add a completer
-
-  //Releases Microphone
-  @override
-  Future<void> dispose() async {
-    if (_isDisposed) {
-      return;
-    }
-    _isDisposed = true;
-    super.dispose();
-    if (_creatingCompleter != null) {
-      await _creatingCompleter.future;
-      // TODO(amirh): remove this on when the invokeMethod update makes it to stable Flutter.
-      // https://github.com/flutter/flutter/issues/26431
-      // ignore: strong_mode_implicit_dynamic_method
-      await _channel.invokeMethod()
-      await audioStream?.cancel();
-    }
-}
-}
+enum CommonFormat { Int16, Int32 }
 
 class AudioValue {
-
-  const AudioValue() {
-    this.channelCount = 1;
-    this.sampleRate = 8000;
-    this.isInterleaved = true;
-<<<<<<< HEAD
-    this.commonFormat = 'int16';}
-
-  const AudioValue.custom(this.channelCount,
-    this.channelLayout,
-    this.sampleRate,
-    this.isInterleaved,
-=======
-    this.commonFormat = '.pcmFormat16';
-  }
-  //Custom Constructor
-  AudioSettings.other(this.channelCount, this.channelLayout,
-    this.sampleRate, this.isInterleaved, this.isStandard,
->>>>>>> 08b30bc687349ed7472cf50969a24dc7647c64a4
-    this.commonFormat);
+  const AudioValue({
+    this.isInitialized: false,
+    this.isStreamingAudio: false,
+  });
 
   const AudioValue.uninitialized()
-      : this(
-            isInitialized: false,
-            isRecordingVideo: false,
-            isTakingPicture: false,
-            isStreamingImages: false);
+      : this(isInitialized: false, isStreamingAudio: false);
 
   /// True after [AudioController.initialize] has completed successfully.
   final bool isInitialized;
-  final double sampleRate;
-  final bool isInterleaved;
-  final int channelLayout;
-  final bool isStreaming;
-  final String commonFormat;
+  final bool isStreamingAudio;
 
   AudioValue copyWith({
     bool isInitialized,
-    double sampleRate,
-    bool isInterleaved,
-    bool isStreaming,
-    String commonFormat,
+    bool isStreamingAudio,
   }) {
-    return AudioValue.custom(
+    return AudioValue(
       isInitialized: isInitialized ?? this.isInitialized,
-      sampleRate: sampleRate ?? this.sampleRate,
-      isInterleaved: isInterleaved ?? this.isInterleaved,
-      isStreaming: isStreaming ?? this.isStreaming,
-      channelLayout: channelLayout ?? this.channelLayout,
+      isStreamingAudio: isStreamingAudio ?? this.isStreamingAudio,
     );
   }
 
   @override
   String toString() {
     return '$runtimeType('
-        'isInitialized: $isInitialized, '
-        'previewSize: $previewSize, '
-        'isStreaming: $isStreaming)';
+        'isInitialized: $isInitialized,'
+        'isStreamingAudio: $isStreamingAudio)';
   }
 }
-
 
 //Exception Handling
 class AudioControllerException implements Exception {
@@ -138,4 +46,127 @@ class AudioControllerException implements Exception {
 
   @override
   String toString() => '$runtimeType($code, $message)';
+}
+
+String _parseCommonFormat(CommonFormat format) {
+  switch (format) {
+    case CommonFormat.Int16:
+      return "AVAudioCommonFormat.pcmFormatInt16";
+    case CommonFormat.Int32:
+      return "AVAudioCommonFormat.pcmFormatInt32";
+  }
+  throw ArgumentError('Unknown Common Format value');
+}
+
+int _parseChannelCount(int count) {
+  switch (count) {
+    case 1:
+      return 1;
+    case 2:
+      return 2;
+  }
+  throw ArgumentError('Unknown ChannelCount value');
+}
+
+//AVAudioFormat Inputs
+class AudioController extends ValueNotifier<AudioValue> {
+  AudioController(this.commonFormat, this.sampleRate, this.channelCount, this.interleaved)
+      : super(const AudioValue.uninitialized());
+
+  final int sampleRate;
+  final bool interleaved;
+  final int channelCount;
+  final CommonFormat commonFormat;
+
+  StreamSubscription<dynamic> _audioStreamSubscription;
+
+  //Control Features
+  bool isStreaming;
+  bool _isDisposed = false;
+
+  Future<void> intialize() async {
+    if (_isDisposed) {
+      return Future<void>.value();
+    }
+    try {
+      await _channel.invokeMethod(
+        'initialize',
+        <String, dynamic>{
+          'commonFormat': _parseCommonFormat(commonFormat),
+          'sampleRate': sampleRate,
+          'interleaved': interleaved,
+          'channelCount': _parseChannelCount(channelCount)
+        },
+      );
+      value = value.copyWith(
+        isInitialized: true,
+      );
+    } on PlatformException catch (e) {
+      throw AudioControllerException(e.code, e.message);
+    }
+  }
+
+  Future<void> startAudioStream() async {
+    if (!value.isInitialized || _isDisposed) {
+      throw AudioControllerException(
+        'Uninitialized AudioController',
+        'startAudioStream was called on uninitialized AudioController.',
+      );
+    }
+    if (value.isStreamingAudio) {
+      throw AudioControllerException(
+        'A mic has started streaming audio.',
+        'startAudioStream was called while a mic was streaming audio.',
+      );
+    }
+
+    try {
+      await _channel.invokeMethod('startAudioStream');
+      value = value.copyWith(isStreamingAudio: true);
+    } on PlatformException catch (e) {
+      throw AudioControllerException(e.code, e.message);
+    }
+    const EventChannel audioChannel = EventChannel('audio');
+    _audioStreamSubscription = audioChannel.receiveBroadcastStream().listen(
+      (dynamic data) {
+        print(data);
+      },
+    );
+  }
+  //add a completer
+
+  //Releases Microphone
+  Future<void> stopAudioStream() async {
+    if (!value.isInitialized || _isDisposed) {
+      throw AudioControllerException(
+        'Uninitialized AudioController',
+        'startAudioStream was called on uninitialized AudioController.',
+      );
+    }
+    if (value.isStreamingAudio) {
+      throw AudioControllerException(
+        'A mic has started streaming audio.',
+        'startAudioStream was called while a mic was streaming audio.',
+      );
+    }
+
+    try {
+      value = value.copyWith(isStreamingAudio: false);
+      await _channel.invokeMethod('stopImageStream');
+    } on PlatformException catch (e) {
+      throw AudioControllerException(e.code, e.message);
+    }
+
+    _audioStreamSubscription.cancel();
+    _audioStreamSubscription = null;
+  }
+
+  @override
+  Future<void> dispose() async {
+    if (_isDisposed) {
+      return;
+    }
+    _isDisposed = true;
+    super.dispose();
+  }
 }
