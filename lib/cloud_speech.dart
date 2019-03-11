@@ -56,7 +56,7 @@ String _parseCommonFormat(CommonFormat format) {
     case CommonFormat.Int32:
       return "AVAudioCommonFormat.pcmFormatInt32";
   }
-  throw ArgumentError('Unknown CameraLensDirection value');
+  throw ArgumentError('Unknown CommonFormat value');
 }
 
 int _parseChannelCount(int count) {

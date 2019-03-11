@@ -17,9 +17,24 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         eventChannel.setStreamHandler(instance)
       }
 
-    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    result("iOS " + UIDevice.current.systemVersion)
-  }
+      public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+          switch call.method {
+          case "initialize":
+            let args = call.arguments as! [String: Any]
+            let someInfo : String = args["commonFormat"]! as! String
+            print(someInfo)
+            
+          case "startAudioStream":
+            return nil!
+
+          case "stopImageStream":
+            return nil!
+            
+          default:
+            return nil!
+
+          }
+    }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
 
@@ -29,7 +44,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         let outputFormat = AVAudioFormat(commonFormat: .pcmFormatInt16, sampleRate: 8000, channels: 1, interleaved: true)!
 
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat)!
-        
+
         input.installTap(onBus: bus, bufferSize: 512, format: inputFormat) { (buffer, time) -> Void in
             var newBufferAvailable = true
 
