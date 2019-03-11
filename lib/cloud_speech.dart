@@ -59,60 +59,24 @@ String _parseCommonFormat(CommonFormat format) {
   throw ArgumentError('Unknown CameraLensDirection value');
 }
 
-class CloudSpeech {
-  //Stream Setup
-  static Future<StreamSubscription> get audioStream async {
-    try {
-      StreamSubscription<dynamic> _audioStream;
-      const EventChannel eventChannel = EventChannel('audio');
-      _audioStream =
-          eventChannel.receiveBroadcastStream().listen((dynamic audioData) {
-        print(audioData);
-      });
-      return _audioStream;
-    } on PlatformException catch (e) {
-      throw (AudioControllerException(e.code, e.message));
-    }
+int _parseChannelCount(int count) {
+  switch (count) {
+    case 1:
+      return 1;
+    case 2:
+      return 2;
   }
-
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-}
-
-class AudioDescription {
-  AudioDescription({this.sampleRate, this.interleaved, this.channelCount});
-
-  final int sampleRate;
-  final bool interleaved;
-  final int channelCount;
-
-  @override
-  bool operator ==(Object o) {
-    return o is AudioDescription &&
-        o.sampleRate == sampleRate &&
-        o.interleaved == interleaved &&
-        o.channelCount == channelCount;
-  }
-
-  @override
-  int get hashCode {
-    return hashValues(sampleRate, interleaved, channelCount);
-  }
-
-  @override
-  String toString() {
-    return '$runtimeType($sampleRate, $interleaved, $channelCount)';
-  }
+  throw ArgumentError('Unknown ChannelCount value');
 }
 
 //AVAudioFormat Inputs
 class AudioController extends ValueNotifier<AudioValue> {
-  AudioController(this.description, this.commonFormat)
+  AudioController(this.commonFormat, this.sampleRate, this.channelCount, this.interleaved)
       : super(const AudioValue.uninitialized());
 
-  final AudioDescription description;
+  final int sampleRate;
+  final bool interleaved;
+  final int channelCount;
   final CommonFormat commonFormat;
 
   StreamSubscription<dynamic> _audioStreamSubscription;
@@ -130,9 +94,9 @@ class AudioController extends ValueNotifier<AudioValue> {
         'initialize',
         <String, dynamic>{
           'commonFormat': _parseCommonFormat(commonFormat),
-          'sampleRate': description.sampleRate,
-          'interleaved': description.interleaved,
-          'channelCount': description.channelCount
+          'sampleRate': sampleRate,
+          'interleaved': interleaved,
+          'channelCount': _parseChannelCount(channelCount)
         },
       );
       value = value.copyWith(
@@ -189,9 +153,6 @@ class AudioController extends ValueNotifier<AudioValue> {
 
     try {
       value = value.copyWith(isStreamingAudio: false);
-      // TODO(amirh): remove this on when the invokeMethod update makes it to stable Flutter.
-      // https://github.com/flutter/flutter/issues/26431
-      // ignore: strong_mode_implicit_dynamic_method
       await _channel.invokeMethod('stopImageStream');
     } on PlatformException catch (e) {
       throw AudioControllerException(e.code, e.message);
