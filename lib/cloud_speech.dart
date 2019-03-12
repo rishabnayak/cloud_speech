@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -56,7 +55,7 @@ String _parseCommonFormat(CommonFormat format) {
     case CommonFormat.Int32:
       return "AVAudioCommonFormat.pcmFormatInt32";
   }
-  throw ArgumentError('Unknown CommonFormat value');
+  throw ArgumentError('Unknown Common Format value');
 }
 
 int _parseChannelCount(int count) {
@@ -141,13 +140,13 @@ class AudioController extends ValueNotifier<AudioValue> {
     if (!value.isInitialized || _isDisposed) {
       throw AudioControllerException(
         'Uninitialized AudioController',
-        'stopAudioStream was called on uninitialized AudioController.',
+        'startAudioStream was called on uninitialized AudioController.',
       );
     }
-    if (!value.isStreamingAudio) {
+    if (value.isStreamingAudio) {
       throw AudioControllerException(
-        "A mic isn't streaming audio.",
-        'stopAudioStream was called while a mic was not streaming audio.',
+        'A mic has started streaming audio.',
+        'startAudioStream was called while a mic was streaming audio.',
       );
     }
 
