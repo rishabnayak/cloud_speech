@@ -32,8 +32,15 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Center(
-          child: Text('Test Plugin'),
+        body: Builder(
+          builder: (context) {
+            return RaisedButton(
+              onPressed: () {
+                controller.stopAudioStream();
+              },
+              child: Text('Stop'),
+            );
+          },
         ),
       ),
     );
