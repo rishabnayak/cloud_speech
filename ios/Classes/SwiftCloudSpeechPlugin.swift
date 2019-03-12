@@ -19,7 +19,8 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
       }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        if(call.method == "initialize"){
+          switch call.method {
+          case "initialize":
             let args = call.arguments as! [String: Any]
             switch args["commonFormat"] as! String{
             case "AVAudioCommonFormat.pcmFormatInt16":
@@ -35,9 +36,22 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
                                                  interleaved: args["interleaved"] as! Bool
                 )
             default:
-                return nil!
+                result("iOS " + UIDevice.current.systemVersion)
             }
-        }
+            result("iOS " + UIDevice.current.systemVersion)
+
+          case "startAudioStream":
+
+            result("iOS " + UIDevice.current.systemVersion)
+
+          case "stopAudioStream":
+
+            result("iOS " + UIDevice.current.systemVersion)
+
+          default:
+            result("iOS " + UIDevice.current.systemVersion)
+
+          }
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -46,7 +60,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         let bus = 0
         let inputFormat = input.outputFormat(forBus: 0)
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat!)!
-        
+
         input.installTap(onBus: bus, bufferSize: 512, format: inputFormat) { (buffer, time) -> Void in
             var newBufferAvailable = true
 
@@ -70,8 +84,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
             let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
             let arr = Array(values)
             events(arr)
-            print("hello")
-            print(arr)
+
         }
 
         try! engine.start()
@@ -81,9 +94,9 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
     }
 
     public func onCancel(withArguments arguments: Any?) -> FlutterError? {
-        
+
         engine.stop()
-        
+
         return nil
 
     }

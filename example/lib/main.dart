@@ -16,7 +16,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    controller = new AudioController(CommonFormat.Int32, 8000, 2, true);
+    controller = new AudioController(CommonFormat.Int16, 8000, 2, true);
     initAudio();
   }
 
