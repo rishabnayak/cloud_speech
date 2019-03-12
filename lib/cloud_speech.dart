@@ -128,8 +128,9 @@ class AudioController extends ValueNotifier<AudioValue> {
     }
     const EventChannel audioChannel = EventChannel('audio');
     _audioStreamSubscription = audioChannel.receiveBroadcastStream().listen(
-      (dynamic data) {
-        print(data);
+      (data) {
+        var intlist = List<int>.from(data);
+        return intlist;
       },
     );
   }
