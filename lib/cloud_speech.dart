@@ -6,6 +6,8 @@ import 'package:flutter/widgets.dart';
 
 final MethodChannel _channel = const MethodChannel('cloud_speech');
 
+List<int> audioData;
+
 enum CommonFormat { Int16, Int32 }
 
 class AudioValue {
@@ -79,7 +81,7 @@ class AudioController extends ValueNotifier<AudioValue> {
   final int channelCount;
   final CommonFormat commonFormat;
 
-  StreamSubscription<dynamic> _audioStreamSubscription;
+  Stream<List<int>> _audioStreamSubscription;
 
   //Control Features
   bool isStreaming;
@@ -107,7 +109,7 @@ class AudioController extends ValueNotifier<AudioValue> {
     }
   }
 
-  Future<void> startAudioStream() async {
+  Stream<List<int>> startAudioStream() {
     if (!value.isInitialized || _isDisposed) {
       throw AudioControllerException(
         'Uninitialized AudioController',
@@ -122,17 +124,13 @@ class AudioController extends ValueNotifier<AudioValue> {
     }
 
     try {
-      await _channel.invokeMethod('startAudioStream');
       value = value.copyWith(isStreamingAudio: true);
     } on PlatformException catch (e) {
       throw AudioControllerException(e.code, e.message);
     }
     const EventChannel audioChannel = EventChannel('audio');
-    _audioStreamSubscription = audioChannel.receiveBroadcastStream().listen(
-      (dynamic data) {
-        print(data);
-      },
-    );
+    _audioStreamSubscription = audioChannel.receiveBroadcastStream().asBroadcastStream().map((dynamic convert) => List<int>.from(convert));
+    return _audioStreamSubscription;
   }
   //add a completer
 
@@ -153,12 +151,10 @@ class AudioController extends ValueNotifier<AudioValue> {
 
     try {
       value = value.copyWith(isStreamingAudio: false);
-      await _channel.invokeMethod('stopImageStream');
     } on PlatformException catch (e) {
       throw AudioControllerException(e.code, e.message);
     }
 
-    _audioStreamSubscription.cancel();
     _audioStreamSubscription = null;
   }
 

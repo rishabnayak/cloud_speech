@@ -1,9 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_speech/cloud_speech.dart';
+import 'package:grpc/grpc.dart';
 import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pb.dart';
 import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pbgrpc.dart';
+import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pbenum.dart';
+
+SpeechClient speech;
 
 void main() => runApp(MyApp());
 
@@ -18,13 +23,40 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    controller = new AudioController(CommonFormat.Int16, 8000, 2, true);
+    controller = new AudioController(CommonFormat.Int16, 16000, 1, true);
+    initSpeech();
     initAudio();
   }
 
+  Future<void> initSpeech() async {
+      final serviceAccountFile = new File('/Users/rishabnayak/Desktop/Projects/cloud_speech/example/lib/service_account_info.json');
+      final _scopes = const ['https://www.googleapis.com/auth/cloud-platform'];
+      final authenticator = new ServiceAccountAuthenticator(serviceAccountFile.readAsStringSync(), _scopes);
+      final channel = new ClientChannel("speech.googleapis.com");
+      speech = SpeechClient(channel, options: authenticator.toCallOptions);
+  }
+
   Future<void> initAudio() async {
-      await controller.intialize();
-      controller.startAudioStream();
+    var configreq = new StreamingRecognizeRequest();
+    var recogconfig = new RecognitionConfig();
+    var config = new StreamingRecognitionConfig();
+    recogconfig.encoding = RecognitionConfig_AudioEncoding.LINEAR16;
+    recogconfig.sampleRateHertz = 16000;
+    recogconfig.languageCode = 'en-us';
+    config.config = recogconfig;
+    config.singleUtterance = true;
+    configreq.streamingConfig = config;
+    var stream = new Stream.fromIterable([configreq]);
+    await controller.intialize();
+    var request = controller.startAudioStream().map((convert){
+      var req = new StreamingRecognizeRequest();
+      req.audioContent = convert;
+      return req;
+    });
+    speech.streamingRecognize(stream);
+    speech.streamingRecognize(request).listen((onData){
+      print(onData.results[0]);
+    });
   }
 
   @override

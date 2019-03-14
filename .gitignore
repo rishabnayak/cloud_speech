@@ -5,3 +5,5 @@
 .pub/
 
 build/
+
+/example/lib/service_account_info.json
