@@ -43,9 +43,10 @@ class _MyAppState extends State<MyApp> {
     var config = new StreamingRecognitionConfig();
     recogconfig.encoding = RecognitionConfig_AudioEncoding.LINEAR16;
     recogconfig.sampleRateHertz = 16000;
-    recogconfig.languageCode = 'en-us';
+    recogconfig.languageCode = 'en-US';
     config.config = recogconfig;
     config.singleUtterance = true;
+    config.interimResults = true;
     configreq.streamingConfig = config;
     var stream = new Stream.fromIterable([configreq]);
     await controller.intialize();
@@ -55,8 +56,9 @@ class _MyAppState extends State<MyApp> {
       return req;
     });
     var nibba = StreamGroup.merge([stream, request]);
-    speech.streamingRecognize(nibba).listen((onData){
-      print(onData.results[0]);
+    var out = speech.streamingRecognize(nibba);
+    out.forEach((action){
+      print(action);
     });
   }
 

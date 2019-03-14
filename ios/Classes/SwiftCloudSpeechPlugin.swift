@@ -7,8 +7,7 @@ import AVFoundation
 public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
 
     let engine = AVAudioEngine()
-    private var eventSink: FlutterEventSink?
-    private var outputFormat = AVAudioFormat(commonFormat: AVAudioCommonFormat.pcmFormatInt16, sampleRate: 8000, channels: 2, interleaved: true)
+    private var outputFormat = AVAudioFormat(commonFormat: AVAudioCommonFormat.pcmFormatInt16, sampleRate: 44100, channels: 2, interleaved: true)
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "cloud_speech", binaryMessenger: registrar.messenger())
@@ -19,39 +18,26 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
       }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-          switch call.method {
-          case "initialize":
+        if(call.method == "initialize"){
             let args = call.arguments as! [String: Any]
             switch args["commonFormat"] as! String{
             case "AVAudioCommonFormat.pcmFormatInt16":
                 outputFormat = AVAudioFormat(commonFormat: AVAudioCommonFormat.pcmFormatInt16,
-                                                 sampleRate: args["sampleRate"] as! Double,
-                                                 channels: args["channelCount"] as! UInt32,
-                                                 interleaved: args["interleaved"] as! Bool
+                                             sampleRate: args["sampleRate"] as! Double,
+                                             channels: args["channelCount"] as! UInt32,
+                                             interleaved: args["interleaved"] as! Bool
                 )
             case "AVAudioCommonFormat.pcmFormatInt32":
                 outputFormat = AVAudioFormat(commonFormat: AVAudioCommonFormat.pcmFormatInt32,
-                                                 sampleRate: args["sampleRate"] as! Double,
-                                                 channels: args["channelCount"] as! UInt32,
-                                                 interleaved: args["interleaved"] as! Bool
+                                             sampleRate: args["sampleRate"] as! Double,
+                                             channels: args["channelCount"] as! UInt32,
+                                             interleaved: args["interleaved"] as! Bool
                 )
             default:
-                result("iOS " + UIDevice.current.systemVersion)
+                return nil!
             }
-            result("iOS " + UIDevice.current.systemVersion)
-
-          case "startAudioStream":
-
-            result("iOS " + UIDevice.current.systemVersion)
-
-          case "stopAudioStream":
-
-            result("iOS " + UIDevice.current.systemVersion)
-
-          default:
-            result("iOS " + UIDevice.current.systemVersion)
-
-          }
+        }
+        result("iOS " + UIDevice.current.systemVersion)
     }
 
     public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
@@ -61,7 +47,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
         let inputFormat = input.outputFormat(forBus: 0)
         let converter = AVAudioConverter(from: inputFormat, to: outputFormat!)!
 
-        input.installTap(onBus: bus, bufferSize: 512, format: inputFormat) { (buffer, time) -> Void in
+        input.installTap(onBus: bus, bufferSize: 1024, format: inputFormat) { (buffer, time) -> Void in
             var newBufferAvailable = true
 
             let inputCallback: AVAudioConverterInputBlock = { inNumPackets, outStatus in
@@ -80,7 +66,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
             var error: NSError?
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
-
+            
             if (self.outputFormat?.commonFormat == AVAudioCommonFormat.pcmFormatInt16) {
                 let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
                 let arr = Array(values)
