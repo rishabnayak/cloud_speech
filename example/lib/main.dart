@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_speech/cloud_speech.dart';
+import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pb.dart';
+import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pbgrpc.dart';
 
 void main() => runApp(MyApp());
 
