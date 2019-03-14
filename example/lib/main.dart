@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_speech/cloud_speech.dart';
 import 'package:grpc/grpc.dart';
+import 'package:async/async.dart';
 import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pb.dart';
 import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pbgrpc.dart';
 import 'package:cloud_speech_example/src/generated/google/cloud/speech/v1/cloud_speech.pbenum.dart';
@@ -53,8 +54,8 @@ class _MyAppState extends State<MyApp> {
       req.audioContent = convert;
       return req;
     });
-    speech.streamingRecognize(stream);
-    speech.streamingRecognize(request).listen((onData){
+    var nibba = StreamGroup.merge([stream, request]);
+    speech.streamingRecognize(nibba).listen((onData){
       print(onData.results[0]);
     });
   }
