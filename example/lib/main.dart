@@ -55,8 +55,8 @@ class _MyAppState extends State<MyApp> {
       req.audioContent = convert;
       return req;
     });
-    var nibba = StreamGroup.merge([stream, request]);
-    var out = speech.streamingRecognize(nibba);
+    var grouped = StreamGroup.merge([stream, request]);
+    var out = speech.streamingRecognize(grouped);
     out.forEach((action){
       print(action);
     });
