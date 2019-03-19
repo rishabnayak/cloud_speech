@@ -66,7 +66,7 @@ public class SwiftCloudSpeechPlugin: NSObject, FlutterPlugin, FlutterStreamHandl
             var error: NSError?
             let status = converter.convert(to: convertedBuffer, error: &error, withInputFrom: inputCallback)
             assert(status != .error)
-            
+
             if (self.outputFormat?.commonFormat == AVAudioCommonFormat.pcmFormatInt16) {
                 let values = UnsafeBufferPointer(start: convertedBuffer.int16ChannelData![0], count: Int(convertedBuffer.frameLength))
                 let arr = Array(values)
